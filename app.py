@@ -62,16 +62,21 @@ def read_file(file, has_headers):
         raise ValueError(f"Error reading file: {str(e)}")
 
 def save_to_gsheets(df, worksheet):
-    """Save dataframe to Google Sheets."""
+    """Append dataframe to Google Sheets."""
     try:
-        # Clear existing content
-        worksheet.clear()
+        # Get the last row with data
+        last_row = len(worksheet.get_all_values())
         
         # Replace NaN values with empty strings
         df_clean = df.fillna('')
         
-        # Update with new content
-        worksheet.update([df_clean.columns.values.tolist()] + df_clean.values.tolist())
+        # Append new records starting from the next row
+        worksheet.append_rows(
+            df_clean.values.tolist(),
+            value_input_option='RAW',
+            insert_data_option='INSERT_ROWS',
+            table_range=f'A{last_row + 1}'
+        )
         return True
     except Exception as e:
         st.error(f"Error saving to Google Sheets: {str(e)}")
