@@ -94,6 +94,8 @@ def clear_session_state():
     for key in list(st.session_state.keys()):
         if key != "password_correct":
             del st.session_state[key]
+    # Force clear the uploaded file
+    st.session_state["uploaded_file"] = None
 
 def on_process_change():
     """Handle process selection change."""
@@ -129,8 +131,12 @@ def main():
     # Update previous process
     st.session_state['previous_process'] = process
     
-    # File uploader
-    uploaded_file = st.file_uploader("Choose a file (CSV, XLSX, or TXT)", type=['csv', 'xlsx', 'txt'])
+    # File uploader with key
+    uploaded_file = st.file_uploader(
+        "Choose a file (CSV, XLSX, or TXT)", 
+        type=['csv', 'xlsx', 'txt'],
+        key="uploaded_file"
+    )
     
     if uploaded_file is not None:
         try:
