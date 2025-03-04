@@ -37,16 +37,29 @@ def check_password():
     
     return st.session_state["password_correct"]
 
-def read_file(file):
+def read_file(file, has_headers):
     """Read file based on its extension."""
-    if file.name.endswith('.csv'):
-        return pd.read_csv(file)
-    elif file.name.endswith('.xlsx'):
-        return pd.read_excel(file)
-    elif file.name.endswith('.txt'):
-        return pd.read_csv(file, sep='\t')
-    else:
-        raise ValueError("Unsupported file format. Please upload CSV, XLSX, or TXT file.")
+    try:
+        if file.name.endswith('.csv'):
+            return pd.read_csv(file, header=0 if has_headers else None)
+        elif file.name.endswith('.xlsx'):
+            return pd.read_excel(file, header=0 if has_headers else None)
+        elif file.name.endswith('.txt'):
+            # First try comma separator
+            try:
+                df = pd.read_csv(file, sep=',', header=0 if has_headers else None)
+                # Check if we got more than one column
+                if len(df.columns) > 1:
+                    return df
+            except:
+                pass
+            
+            # If comma didn't work, try tab separator
+            return pd.read_csv(file, sep='\t', header=0 if has_headers else None)
+        else:
+            raise ValueError("Unsupported file format. Please upload CSV, XLSX, or TXT file.")
+    except Exception as e:
+        raise ValueError(f"Error reading file: {str(e)}")
 
 def save_to_gsheets(df, worksheet):
     """Save dataframe to Google Sheets."""
@@ -85,8 +98,15 @@ def main():
     
     if uploaded_file is not None:
         try:
+            # Ask if file has headers
+            has_headers = st.checkbox("File has headers", value=True)
+            
             # Read the file
-            df = read_file(uploaded_file)
+            df = read_file(uploaded_file, has_headers)
+            
+            # If no headers, generate column names
+            if not has_headers:
+                df.columns = [f'Column {i+1}' for i in range(len(df.columns))]
             
             # Show the first few rows of the data
             st.markdown("### Preview of Data")
@@ -104,7 +124,6 @@ def main():
             
             with col2:
                 phone_col = st.selectbox("Phone Column", df.columns.tolist())
-                last_name_col = st.selectbox("Last Name Column", df.columns.tolist())
             
             # Process button
             if st.button("Process Data"):
@@ -113,7 +132,6 @@ def main():
                     processed_df = pd.DataFrame({
                         'Email': df[email_col],
                         'First Name': df[first_name_col],
-                        'Last Name': df[last_name_col],
                         'Phone': df[phone_col]
                     })
                     
