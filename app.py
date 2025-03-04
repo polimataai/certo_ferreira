@@ -94,8 +94,6 @@ def clear_session_state():
     for key in list(st.session_state.keys()):
         if key != "password_correct":
             del st.session_state[key]
-    # Force clear the uploaded file
-    st.session_state["uploaded_file"] = None
 
 def on_process_change():
     """Handle process selection change."""
@@ -131,12 +129,8 @@ def main():
     # Update previous process
     st.session_state['previous_process'] = process
     
-    # File uploader with key
-    uploaded_file = st.file_uploader(
-        "Choose a file (CSV, XLSX, or TXT)", 
-        type=['csv', 'xlsx', 'txt'],
-        key="uploaded_file"
-    )
+    # File uploader
+    uploaded_file = st.file_uploader("Choose a file (CSV, XLSX, or TXT)", type=['csv', 'xlsx', 'txt'])
     
     if uploaded_file is not None:
         try:
@@ -166,27 +160,23 @@ def main():
             
             with col2:
                 phone_col = st.selectbox("Phone Column", df.columns.tolist())
-                # Add store number for Ferreira process
+                # Add store number selection for Ferreira
                 if process == "Ferreira":
                     store_col = st.selectbox("Store Number Column", df.columns.tolist())
             
             # Process button
             if st.button("Process Data"):
                 with st.spinner("Processing data and updating Google Sheets..."):
-                    # Create a new dataframe with the mapped columns
+                    # Create base dataframe
+                    processed_df = pd.DataFrame({
+                        'Email': df[email_col].str.lower(),
+                        'First Name': df[first_name_col].apply(format_name),
+                        'Phone': df[phone_col]
+                    })
+                    
+                    # Add store number for Ferreira
                     if process == "Ferreira":
-                        processed_df = pd.DataFrame({
-                            'Email': df[email_col].str.lower(),
-                            'First Name': df[first_name_col].apply(format_name),
-                            'Phone': df[phone_col],
-                            'Store': df[store_col]
-                        })
-                    else:
-                        processed_df = pd.DataFrame({
-                            'Email': df[email_col].str.lower(),
-                            'First Name': df[first_name_col].apply(format_name),
-                            'Phone': df[phone_col]
-                        })
+                        processed_df['Store Number'] = df[store_col]
                     
                     # Setup Google Sheets connection
                     scope = ['https://spreadsheets.google.com/feeds',
