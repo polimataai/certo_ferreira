@@ -11,6 +11,13 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+def format_name(name):
+    """Format name to capitalize only the first letter of each word."""
+    if pd.isna(name):
+        return name
+    # Split the name into words and capitalize only the first letter
+    return ' '.join(word.lower().capitalize() for word in str(name).split())
+
 # Password protection
 def check_password():
     """Returns `True` if the user had the correct password."""
@@ -135,8 +142,8 @@ def main():
                 with st.spinner("Processing data and updating Google Sheets..."):
                     # Create a new dataframe with the mapped columns
                     processed_df = pd.DataFrame({
-                        'Email': df[email_col],
-                        'First Name': df[first_name_col],
+                        'Email': df[email_col].str.lower(),
+                        'First Name': df[first_name_col].apply(format_name),
                         'Phone': df[phone_col]
                     })
                     
