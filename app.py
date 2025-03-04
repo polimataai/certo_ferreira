@@ -166,16 +166,27 @@ def main():
             
             with col2:
                 phone_col = st.selectbox("Phone Column", df.columns.tolist())
+                # Add store number for Ferreira process
+                if process == "Ferreira":
+                    store_col = st.selectbox("Store Number Column", df.columns.tolist())
             
             # Process button
             if st.button("Process Data"):
                 with st.spinner("Processing data and updating Google Sheets..."):
                     # Create a new dataframe with the mapped columns
-                    processed_df = pd.DataFrame({
-                        'Email': df[email_col].str.lower(),
-                        'First Name': df[first_name_col].apply(format_name),
-                        'Phone': df[phone_col]
-                    })
+                    if process == "Ferreira":
+                        processed_df = pd.DataFrame({
+                            'Email': df[email_col].str.lower(),
+                            'First Name': df[first_name_col].apply(format_name),
+                            'Phone': df[phone_col],
+                            'Store': df[store_col]
+                        })
+                    else:
+                        processed_df = pd.DataFrame({
+                            'Email': df[email_col].str.lower(),
+                            'First Name': df[first_name_col].apply(format_name),
+                            'Phone': df[phone_col]
+                        })
                     
                     # Setup Google Sheets connection
                     scope = ['https://spreadsheets.google.com/feeds',
