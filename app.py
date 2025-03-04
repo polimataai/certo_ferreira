@@ -89,6 +89,16 @@ def save_to_gsheets(df, worksheet):
         st.error(f"Error saving to Google Sheets: {str(e)}")
         return False
 
+def clear_session_state():
+    """Clear all session state variables except password_correct."""
+    for key in list(st.session_state.keys()):
+        if key != "password_correct":
+            del st.session_state[key]
+
+def on_process_change():
+    """Handle process selection change."""
+    clear_session_state()
+
 def main():
     if not check_password():
         st.error("⚠️ Password incorrect. Please try again.")
@@ -98,12 +108,26 @@ def main():
     st.title("🌾 Harvesting Media")
     st.subheader("Data Processor")
     
+    # Initialize session state for process if not exists
+    if 'previous_process' not in st.session_state:
+        st.session_state['previous_process'] = None
+    
     # Process selection
     process = st.selectbox(
         "Select Process",
         ["Certo Market", "Ferreira"],
-        help="Choose which process to run"
+        help="Choose which process to run",
+        key="process"
     )
+    
+    # Check if process changed
+    if st.session_state['previous_process'] is not None and st.session_state['previous_process'] != process:
+        clear_session_state()
+        st.session_state['process'] = process
+        st.rerun()
+    
+    # Update previous process
+    st.session_state['previous_process'] = process
     
     # File uploader
     uploaded_file = st.file_uploader("Choose a file (CSV, XLSX, or TXT)", type=['csv', 'xlsx', 'txt'])
