@@ -115,7 +115,7 @@ def main():
     # Process selection
     process = st.selectbox(
         "Select Process",
-        ["Certo Market", "Ferreira"],
+        ["Certo Market", "Ferreira", "Certo Market Visits Report"],
         help="Choose which process to run",
         key="process"
     )
@@ -152,27 +152,52 @@ def main():
             st.markdown("### Map Columns")
             st.markdown("Please select which columns contain the required information:")
             
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                email_col = st.selectbox("Email Column", df.columns.tolist())
-                first_name_col = st.selectbox("First Name Column", df.columns.tolist())
-            
-            with col2:
-                phone_col = st.selectbox("Phone Column", df.columns.tolist())
-                # Add store number selection for Ferreira
-                if process == "Ferreira":
-                    store_col = st.selectbox("Store Number Column", df.columns.tolist())
+            if process == "Certo Market Visits Report":
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    name_col = st.selectbox("Name Column", df.columns.tolist())
+                    email_col = st.selectbox("Email Column", df.columns.tolist())
+                
+                with col2:
+                    phone_col = st.selectbox("Phone Column", df.columns.tolist())
+                    reg_date_col = st.selectbox("Registration Date Column", df.columns.tolist())
+                
+                with col3:
+                    first_order_col = st.selectbox("First Order Date Column", df.columns.tolist())
+                    spent_col = st.selectbox("Spent Amount Column", df.columns.tolist())
+            else:
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    email_col = st.selectbox("Email Column", df.columns.tolist())
+                    first_name_col = st.selectbox("First Name Column", df.columns.tolist())
+                
+                with col2:
+                    phone_col = st.selectbox("Phone Column", df.columns.tolist())
+                    # Add store number selection for Ferreira
+                    if process == "Ferreira":
+                        store_col = st.selectbox("Store Number Column", df.columns.tolist())
             
             # Process button
             if st.button("Process Data"):
                 with st.spinner("Processing data and updating Google Sheets..."):
                     # Create base dataframe
-                    processed_df = pd.DataFrame({
-                        'Email': df[email_col].str.lower(),
-                        'First Name': df[first_name_col].apply(format_name),
-                        'Phone': df[phone_col]
-                    })
+                    if process == "Certo Market Visits Report":
+                        processed_df = pd.DataFrame({
+                            'Name': df[name_col].apply(format_name),
+                            'Email': df[email_col].str.lower(),
+                            'Phone': df[phone_col],
+                            'Registered Date': df[reg_date_col],
+                            'First Order Date': df[first_order_col],
+                            'Spent $': df[spent_col]
+                        })
+                    else:
+                        processed_df = pd.DataFrame({
+                            'Email': df[email_col].str.lower(),
+                            'First Name': df[first_name_col].apply(format_name),
+                            'Phone': df[phone_col]
+                        })
                     
                     # Add store number for Ferreira
                     if process == "Ferreira":
@@ -203,7 +228,13 @@ def main():
                     workbook = gc.open_by_key(spreadsheet_key)
                     
                     # Select worksheet based on process
-                    worksheet_name = "Certo_Market" if process == "Certo Market" else "Ferreira"
+                    if process == "Certo Market":
+                        worksheet_name = "Certo_Market"
+                    elif process == "Ferreira":
+                        worksheet_name = "Ferreira"
+                    else:  # Certo Market Visits Report
+                        worksheet_name = "Certo_Market_MKT_Report"
+                    
                     worksheet = workbook.worksheet(worksheet_name)
                     
                     # Save to Google Sheets
