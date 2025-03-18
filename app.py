@@ -238,6 +238,13 @@ def main():
                     
                     worksheet = workbook.worksheet(worksheet_name)
                     
+                    # Clear the worksheet if it's Certo Market Visits Report
+                    if process == "Certo Market Visits Report":
+                        worksheet.clear()
+                        # Add headers
+                        headers = ['Name', 'Email', 'Phone', 'Registered Date', 'First Order Date', 'Spent $']
+                        worksheet.append_row(headers)
+                    
                     # Save to Google Sheets
                     if save_to_gsheets(processed_df, worksheet):
                         st.success(f"✅ Data successfully processed and saved to {worksheet_name}!")
