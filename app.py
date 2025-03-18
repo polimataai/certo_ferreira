@@ -184,12 +184,13 @@ def main():
                 with st.spinner("Processing data and updating Google Sheets..."):
                     # Create base dataframe
                     if process == "Certo Market Visits Report":
+                        # Convert dates to string format before creating DataFrame
                         processed_df = pd.DataFrame({
                             'Name': df[name_col].apply(format_name),
                             'Email': df[email_col].str.lower(),
                             'Phone': df[phone_col],
-                            'Registered Date': df[reg_date_col],
-                            'First Order Date': df[first_order_col],
+                            'Registered Date': pd.to_datetime(df[reg_date_col]).dt.strftime('%Y-%m-%d'),
+                            'First Order Date': pd.to_datetime(df[first_order_col]).dt.strftime('%Y-%m-%d'),
                             'Spent $': df[spent_col]
                         })
                     else:
